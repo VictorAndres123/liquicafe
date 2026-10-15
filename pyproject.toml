@@ -29,6 +29,9 @@ name = "Capas cerradas: la presentacion no puede saltarse el negocio"
 type = "forbidden"
 source_modules = ["app.presentation"]
 forbidden_modules = ["app.persistence"]
+# Lo prohibido es el salto directo. El camino presentacion -> negocio ->
+# persistencia es justamente el que el patron exige, asi que se permite.
+allow_indirect_imports = true
 
 [[tool.importlinter.contracts]]
 name = "Dominio puro: sin servicios, persistencia ni frameworks web"
