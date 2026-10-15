@@ -1,0 +1,26 @@
+# Entorno de Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Pruebas y cobertura
+.pytest_cache/
+.coverage
+htmlcov/
+.import_linter_cache/
+
+# Datos locales: la base de datos tiene datos personales (Ley 1581 de 2012)
+# y nunca debe subirse al repositorio.
+datos/
+respaldos/
+*.db
+*.db-wal
+*.db-shm
+
+# Editores y sistema operativo
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

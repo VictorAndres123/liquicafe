@@ -1,0 +1,37 @@
+[project]
+name = "liquicafe"
+version = "0.1.0"
+description = "MVP de liquidación de compras de café pergamino seco con arquitectura en capas"
+readme = "README.md"
+requires-python = ">=3.12"
+authors = [{ name = "Victor Rojas" }]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+# ---------------------------------------------------------------------------
+# Contratos de arquitectura (import-linter).
+# Convierten el patrón en algo verificable: si alguien rompe la dirección de
+# las dependencias, `lint-imports` (y la suite de pruebas) falla.
+# ---------------------------------------------------------------------------
+[tool.importlinter]
+root_package = "app"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "Capas: presentacion -> negocio -> persistencia (nunca hacia arriba)"
+type = "layers"
+layers = ["app.presentation", "app.business", "app.persistence"]
+
+[[tool.importlinter.contracts]]
+name = "Capas cerradas: la presentacion no puede saltarse el negocio"
+type = "forbidden"
+source_modules = ["app.presentation"]
+forbidden_modules = ["app.persistence"]
+
+[[tool.importlinter.contracts]]
+name = "Dominio puro: sin servicios, persistencia ni frameworks web"
+type = "forbidden"
+source_modules = ["app.business.domain"]
+forbidden_modules = ["app.business.services", "app.persistence", "fastapi", "starlette", "jinja2"]
