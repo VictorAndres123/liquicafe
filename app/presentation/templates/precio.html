@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block titulo %}Precio del día{% endblock %}
+{% block contenido %}
+<h1>Precio del día</h1>
+{% if precio %}<div class="aviso info">Ya hay precio para hoy: carga FR 94 a {{ precio.precio_carga_fr94 | pesos }}, pasilla a {{ precio.precio_pasilla_kg | pesos }}/kg. No se puede cambiar porque pudo usarse para liquidar.</div>{% endif %}
+<form class="ficha" method="post" action="/precio">
+  <label for="fecha">Fecha</label><input id="fecha" type="date" name="fecha" required value="{{ hoy.isoformat() }}">
+  <label for="p94">Precio por carga de 125 kg, FR 94 (boletín FNC)</label><input id="p94" name="precio_carga_fr94" type="number" min="1" required placeholder="2220000">
+  <label for="ppas">Precio de la pasilla por kg</label><input id="ppas" name="precio_pasilla_kg" type="number" min="1" required placeholder="10000">
+  <button type="submit">Registrar precio</button>
+</form>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block titulo %}Historial{% endblock %}
+{% block contenido %}
+<h1>Historial de entregas</h1>
+<form class="ficha" method="post" action="/historial">
+  <label for="cedula">Cédula del asociado</label><input id="cedula" name="cedula" inputmode="numeric" required>
+  <button type="submit">Consultar</button>
+</form>
+{% if liquidaciones is not none %}
+<h2>{{ productor.nombre }} · C.C. {{ productor.cedula }}</h2>
+<table>
+  <tr><th>N.º</th><th>Fecha</th><th class="valor">Kg</th><th class="valor">FR</th><th class="valor">Neto</th><th>Estado</th></tr>
+  {% for liq in liquidaciones %}
+  <tr><td><a href="/liquidaciones/{{ liq.id }}">{{ liq.id }}</a></td><td>{{ liq.entrega.fecha.strftime('%d/%m/%Y') }}</td>
+      <td class="valor">{{ liq.entrega.kilos | numero }}</td><td class="valor">{{ liq.entrega.factor_rendimiento | numero }}</td>
+      <td class="valor">{{ liq.neto | pesos }}</td><td class="estado estado-{{ liq.estado.value }}">{{ liq.estado.value }}</td></tr>
+  {% else %}<tr><td colspan="6">Sin entregas registradas.</td></tr>{% endfor %}
+</table>
+{% endif %}
+{% endblock %}

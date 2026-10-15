@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block titulo %}Comprobante {{ liq.id }}{% endblock %}
+{% block contenido %}
+{% set e = liq.entrega %}
+<div class="ficha">
+  <p class="ayuda">Asociación de Caficultores del Valle del Guarapas (caso académico ficticio) · Pitalito, Huila</p>
+  <h1>Comprobante de liquidación N.º {{ liq.id }}</h1>
+  <p><span class="estado estado-{{ liq.estado.value }}">{{ liq.estado.value }}</span>
+    {% if liq.motivo_anulacion %} · Motivo: {{ liq.motivo_anulacion }} ({{ liq.responsable_anulacion }}){% endif %}</p>
+  <table>
+    <tr><th>Fecha</th><td>{{ e.fecha.strftime('%d/%m/%Y') }}</td></tr>
+    <tr><th>Asociado</th><td>{{ e.productor.nombre }} · C.C. {{ e.productor.cedula }} · Vereda {{ e.productor.vereda }}</td></tr>
+    <tr><th>Peso</th><td>{{ e.kilos | numero }} kg ({{ e.arrobas | numero(2) }} arrobas; {{ e.cargas | numero(3) }} cargas)</td></tr>
+    <tr><th>Humedad / FR</th><td>{{ e.humedad | numero }} % · FR {{ e.factor_rendimiento | numero }}</td></tr>
+    <tr><th>Prueba de taza</th><td>{{ e.defecto.etiqueta }}</td></tr>
+    <tr><th>Precio aplicado</th><td>{{ liq.precio_kg | pesos }}/kg (carga FR 94 del día: {{ liq.parametros.precio_carga_fr94 | pesos }})</td></tr>
+  </table>
+  <h2>Desglose</h2>
+  <table>
+    {% for linea in liq.lineas %}<tr><td>{{ linea.concepto }}</td><td class="valor">{{ linea.valor | pesos }}</td></tr>{% endfor %}
+    <tr><th>Neto a pagar</th><th class="valor">{{ liq.neto | pesos }}</th></tr>
+  </table>
+  <p class="ayuda">Tabla de precios: {{ liq.parametros.fuente_tabla }}.</p>
+</div>
+<div class="no-imprimir">
+  <button class="secundario" onclick="window.print()">Imprimir</button>
+  {% if liq.estado.value == 'VIGENTE' %}
+  <form class="ficha" method="post" action="/liquidaciones/{{ liq.id }}/pagar">
+    <label for="resp-pago">Pagado por</label><input id="resp-pago" name="responsable" required>
+    <button type="submit">Marcar como pagada</button>
+  </form>
+  <form class="ficha" method="post" action="/liquidaciones/{{ liq.id }}/anular">
+    <label for="motivo">Motivo de la anulación</label><input id="motivo" name="motivo" required>
+    <label for="resp-anula">Quién anula</label><input id="resp-anula" name="responsable" required>
+    <button class="peligro" type="submit">Anular</button>
+  </form>
+  {% endif %}
+  <h2>Auditoría</h2>
+  <table>
+    {% for ev in auditoria %}<tr><td>{{ ev.momento.strftime('%d/%m/%Y %H:%M') }}</td><td>{{ ev.evento }}</td><td>{{ ev.responsable }}</td><td>{{ ev.detalle or '' }}</td></tr>{% endfor %}
+  </table>
+</div>
+{% endblock %}

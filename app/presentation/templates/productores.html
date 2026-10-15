@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block titulo %}Asociados{% endblock %}
+{% block contenido %}
+<h1>Asociados</h1>
+<form class="ficha" method="post" action="/productores">
+  <label for="cedula">Cédula</label><input id="cedula" name="cedula" inputmode="numeric" required value="{{ datos.cedula or '' }}">
+  <label for="nombre">Nombre completo</label><input id="nombre" name="nombre" required value="{{ datos.nombre or '' }}">
+  <label for="vereda">Vereda</label><input id="vereda" name="vereda" required value="{{ datos.vereda or '' }}">
+  <label for="telefono">Teléfono (opcional)</label><input id="telefono" name="telefono" value="{{ datos.telefono or '' }}">
+  <label><input type="checkbox" name="programa_especial" value="true" {% if datos.programa_especial %}checked{% endif %}> Pertenece a un programa de cafés especiales</label>
+  <label><input type="checkbox" name="acepta_tratamiento_datos" value="true"> El asociado autoriza el tratamiento de sus datos personales para liquidar y pagar sus entregas (Ley 1581 de 2012)</label>
+  <button type="submit">Registrar asociado</button>
+</form>
+<table>
+  <tr><th>Nombre</th><th>Cédula</th><th>Vereda</th><th>Programa</th><th>Autorizó datos</th></tr>
+  {% for p in productores %}
+  <tr><td>{{ p.nombre }}</td><td>{{ p.cedula }}</td><td>{{ p.vereda }}</td><td>{{ 'Sí' if p.programa_especial else 'No' }}</td><td>{{ p.fecha_autorizacion_datos.strftime('%d/%m/%Y') }}</td></tr>
+  {% else %}<tr><td colspan="5">Aún no hay asociados registrados.</td></tr>{% endfor %}
+</table>
+{% endblock %}

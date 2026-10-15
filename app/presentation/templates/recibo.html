@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block titulo %}Recibo de café{% endblock %}
+{% block contenido %}
+<h1>Recibo de café pergamino seco</h1>
+{% if precio %}
+  <div class="aviso info">Precio de hoy: carga FR 94 a <strong>{{ precio.precio_carga_fr94 | pesos }}</strong>,
+    pasilla a {{ precio.precio_pasilla_kg | pesos }}/kg.</div>
+{% else %}
+  <div class="aviso error">Todavía no hay precio para hoy. <a href="/precio">Registrar el precio del día</a> antes de recibir café.</div>
+{% endif %}
+<form class="ficha" method="post" action="/recibo">
+  <label for="cedula">Cédula del asociado</label>
+  <input id="cedula" name="cedula" inputmode="numeric" autocomplete="off" required value="{{ datos.cedula or '' }}">
+  <label for="kilos">Peso (kg)</label>
+  <input id="kilos" name="kilos" inputmode="decimal" placeholder="190,5" required value="{{ datos.kilos or '' }}">
+  <label for="humedad">Humedad (%)</label>
+  <input id="humedad" name="humedad" inputmode="decimal" placeholder="11,2" required value="{{ datos.humedad or '' }}">
+  <label for="factor_rendimiento">Factor de rendimiento de la muestra</label>
+  <input id="factor_rendimiento" name="factor_rendimiento" inputmode="decimal" placeholder="92,4" required value="{{ datos.factor_rendimiento or '' }}">
+  <label for="defecto">Prueba de taza</label>
+  <select id="defecto" name="defecto">
+    {% for d in defectos %}<option value="{{ d.value }}" {% if datos.defecto == d %}selected{% endif %}>{{ d.etiqueta }}</option>{% endfor %}
+  </select>
+  <div><button type="submit">Liquidar</button></div>
+  <p class="ayuda">Se acepta coma o punto decimal. Humedad válida: 10 % a 12 %. FR válido: 88 a 100.</p>
+</form>
+{% endblock %}

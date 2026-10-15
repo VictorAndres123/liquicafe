@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block titulo %}Reporte diario{% endblock %}
+{% block contenido %}
+<h1>Reporte de compras del {{ reporte.fecha.strftime('%d/%m/%Y') }}</h1>
+<form class="ficha no-imprimir" method="get" action="/reporte">
+  <label for="fecha">Fecha</label><input id="fecha" type="date" name="fecha" value="{{ reporte.fecha.isoformat() }}">
+  <button type="submit">Ver</button>
+</form>
+<table>
+  <tr><th>Entregas liquidadas</th><td class="valor">{{ reporte.entregas }}</td></tr>
+  <tr><th>Anuladas (no suman)</th><td class="valor">{{ reporte.anuladas }}</td></tr>
+  <tr><th>Kilos</th><td class="valor">{{ reporte.kilos | numero }}</td></tr>
+  <tr><th>Cargas</th><td class="valor">{{ reporte.cargas | numero(2) }}</td></tr>
+  <tr><th>FR promedio ponderado por kilos</th><td class="valor">{{ reporte.fr_promedio_ponderado | numero(2) if reporte.fr_promedio_ponderado else '-' }}</td></tr>
+  <tr><th>Valor neto a pagar</th><td class="valor"><strong>{{ reporte.valor_neto | pesos }}</strong></td></tr>
+</table>
+{% endblock %}
