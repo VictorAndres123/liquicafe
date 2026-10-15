@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}LiquiCafé{% endblock %} · LiquiCafé</title>
+  <style>
+    :root { --cafe: #5b3a29; --cafe-claro: #f4ece4; --verde: #2f6b3a; --rojo: #a12a2a; --gris: #6b6b6b; }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, "Segoe UI", Arial, sans-serif; color: #222; background: #fbf8f5; }
+    header { background: var(--cafe); color: #fff; padding: .75rem 1rem; display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+    header strong { font-size: 1.15rem; margin-right: auto; }
+    header a { color: #fff; text-decoration: none; padding: .25rem .5rem; border-radius: 4px; }
+    header a:hover { background: rgba(255,255,255,.15); }
+    main { max-width: 900px; margin: 1.5rem auto; padding: 0 1rem; }
+    h1 { color: var(--cafe); font-size: 1.5rem; }
+    form.ficha, .ficha { background: #fff; border: 1px solid #e3d8cc; border-radius: 8px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+    label { display: block; font-weight: 600; margin: .6rem 0 .2rem; }
+    input, select { width: 100%; max-width: 360px; padding: .55rem; font-size: 1.05rem; border: 1px solid #bbb; border-radius: 4px; }
+    input[type=checkbox] { width: auto; }
+    button { margin-top: .9rem; padding: .6rem 1.2rem; font-size: 1rem; border: 0; border-radius: 4px; background: var(--verde); color: #fff; cursor: pointer; }
+    button.secundario { background: var(--gris); }
+    button.peligro { background: var(--rojo); }
+    table { width: 100%; border-collapse: collapse; background: #fff; }
+    th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid #eee; }
+    td.valor, th.valor { text-align: right; font-variant-numeric: tabular-nums; }
+    .aviso { padding: .7rem 1rem; border-radius: 6px; margin-bottom: 1rem; }
+    .error { background: #fbe9e9; color: var(--rojo); border: 1px solid #f0c4c4; }
+    .info { background: var(--cafe-claro); border: 1px solid #e3d8cc; }
+    .ayuda { color: var(--gris); font-size: .9rem; }
+    .estado { font-weight: 700; }
+    .estado-ANULADA { color: var(--rojo); }
+    .estado-PAGADA { color: var(--verde); }
+    @media print { header, .no-imprimir { display: none !important; } body { background: #fff; } main { margin: 0; } }
+  </style>
+</head>
+<body>
+  <header>
+    <strong>LiquiCafé</strong>
+    <a href="/recibo">Recibo</a>
+    <a href="/precio">Precio del día</a>
+    <a href="/productores">Asociados</a>
+    <a href="/historial">Historial</a>
+    <a href="/reporte">Reporte</a>
+  </header>
+  <main>
+    {% if error %}<div class="aviso error" role="alert">{{ error }}</div>{% endif %}
+    {% block contenido %}{% endblock %}
+  </main>
+</body>
+</html>

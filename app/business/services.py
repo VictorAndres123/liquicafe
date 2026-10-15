@@ -112,6 +112,10 @@ class ServicioPrecios:
     def de_hoy(self) -> PrecioDelDia | None:
         return self.obtener(self._hoy())
 
+    def fecha_de_hoy(self) -> date:
+        """La fecha la decide el reloj del negocio, no el de la vista (facilita las pruebas)."""
+        return self._hoy()
+
 
 class ServicioEntregas:
     def __init__(
