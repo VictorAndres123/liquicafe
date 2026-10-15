@@ -8,7 +8,7 @@ soporte contable: si cambia de estado se crea una copia nueva con
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from datetime import date
+from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
 from typing import Any, Mapping
@@ -174,3 +174,13 @@ class Liquidacion:
                 f"Solo se pagan liquidaciones vigentes; esta está {self.estado.value.lower()}."
             )
         return replace(self, estado=EstadoLiquidacion.PAGADA)
+
+
+@dataclass(frozen=True)
+class EventoAuditoria:
+    """Rastro de lo que le pasó a una liquidación: quién, qué y cuándo (QA-03)."""
+
+    evento: str
+    detalle: str | None
+    responsable: str
+    momento: datetime
