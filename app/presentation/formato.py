@@ -1,17 +1,19 @@
-"""Formato colombiano para las vistas: punto de miles y coma decimal."""
+"""Filtros de Jinja2 con formato colombiano (punto de miles y coma decimal).
+
+Reutiliza las funciones del dominio para que el comprobante y los mensajes
+de rechazo escriban los números exactamente igual.
+"""
 
 from __future__ import annotations
 
 from decimal import Decimal
 
+from app.business.domain.texto import decimal_es, pesos_es
+
 
 def pesos(valor: int) -> str:
-    """2305500 -> '$ 2.305.500'; -22200 -> '-$ 22.200'."""
-    signo = "-" if valor < 0 else ""
-    return f"{signo}$ {abs(valor):,}".replace(",", ".")
+    return pesos_es(valor)
 
 
-def numero(valor: Decimal | int | float, decimales: int = 1) -> str:
-    """190.3 -> '190,3'; 1234.5 -> '1.234,5'."""
-    texto = f"{Decimal(valor):,.{decimales}f}"
-    return texto.replace(",", "§").replace(".", ",").replace("§", ".")
+def numero(valor: Decimal | int, decimales: int = 1) -> str:
+    return decimal_es(valor, decimales)

@@ -21,6 +21,7 @@ from app.business.domain.ajustes import (
 from app.business.domain.errores import EntregaRechazada
 from app.business.domain.models import DefectoTaza, Entrega, Liquidacion, PrecioDelDia
 from app.business.domain.tabla_fr import TablaFactorRendimiento
+from app.business.domain.texto import decimal_es
 
 
 class Liquidador:
@@ -79,18 +80,19 @@ class Liquidador:
             raise EntregaRechazada("El peso debe ser mayor que cero.")
         if entrega.humedad > self.humedad_maxima:
             raise EntregaRechazada(
-                f"Humedad de {entrega.humedad} %: el café está húmedo. "
-                f"Devolver para secado (máximo {self.humedad_maxima} %)."
+                f"Humedad de {decimal_es(entrega.humedad)} %: el café está húmedo. "
+                f"Devolver para secado (máximo {decimal_es(self.humedad_maxima)} %)."
             )
         if entrega.humedad < self.humedad_minima:
             raise EntregaRechazada(
-                f"Humedad de {entrega.humedad} %: el café está sobresecado "
-                f"(mínimo {self.humedad_minima} %). Se recibe solo por negociación aparte."
+                f"Humedad de {decimal_es(entrega.humedad)} %: el café está sobresecado "
+                f"(mínimo {decimal_es(self.humedad_minima)} %). Se recibe solo por negociación aparte."
             )
         if not self.tabla.admite(entrega.factor_rendimiento):
             raise EntregaRechazada(
-                f"FR {entrega.factor_rendimiento} fuera de la tabla de la FNC "
-                f"({self.tabla.fr_minimo} a {self.tabla.fr_maximo}). Requiere negociación aparte."
+                f"FR {decimal_es(entrega.factor_rendimiento)} fuera de la tabla de la FNC "
+                f"({decimal_es(self.tabla.fr_minimo)} a {decimal_es(self.tabla.fr_maximo)}). "
+                "Requiere negociación aparte."
             )
 
     def liquidar(self, entrega: Entrega, precio: PrecioDelDia) -> Liquidacion:

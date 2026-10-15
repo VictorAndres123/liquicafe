@@ -70,3 +70,20 @@ def test_reporte_pondera_el_fr_por_kilos_y_excluye_anuladas(liquidador, precio_f
     # (500 x 90 + 20 x 99) / 520 = 90,35; un promedio simple daría 94,5
     assert reporte.fr_promedio_ponderado == Decimal("90.35")
     assert reporte.valor_neto == grande.neto + pequena.neto
+
+
+def test_numeros_con_formato_colombiano():
+    from app.business.domain.texto import decimal_es, pesos_es
+
+    assert decimal_es(Decimal("13.4")) == "13,4"
+    assert decimal_es(Decimal("1.0")) == "1"
+    assert decimal_es(Decimal("1234.5"), 1) == "1.234,5"
+    assert pesos_es(3_455_766) == "$ 3.455.766"
+    assert pesos_es(-22_200) == "-$ 22.200"
+
+
+def test_mensaje_de_rechazo_usa_coma_decimal(liquidador, precio_fnc, nueva_entrega):
+    from app.business.domain.errores import EntregaRechazada
+
+    with pytest.raises(EntregaRechazada, match=r"Humedad de 13,4 %.*máximo 12 %"):
+        liquidador.liquidar(nueva_entrega(humedad=Decimal("13.4")), precio_fnc)

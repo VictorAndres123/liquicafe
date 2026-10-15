@@ -33,6 +33,7 @@ from app.business.domain.models import (
     Productor,
 )
 from app.business.domain.reportes import ReporteDiario
+from app.business.domain.texto import pesos_es
 from app.persistence.database import UnidadDeTrabajo
 
 FabricaUnidadDeTrabajo = Callable[[], UnidadDeTrabajo]
@@ -162,7 +163,7 @@ class ServicioEntregas:
             )
             liquidacion = self._liquidador.liquidar(entrega, mapeo.a_precio(fila_precio))
             nuevo_id = uow.liquidaciones.insertar(mapeo.fila_liquidacion(liquidacion))
-            self._auditar(uow, nuevo_id, "CREADA", f"Neto ${liquidacion.neto}", responsable)
+            self._auditar(uow, nuevo_id, "CREADA", f"Neto {pesos_es(liquidacion.neto)}", responsable)
         return replace(liquidacion, id=nuevo_id)
 
     def obtener(self, id_: int) -> Liquidacion:

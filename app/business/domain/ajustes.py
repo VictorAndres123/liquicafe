@@ -14,6 +14,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from typing import Mapping, Protocol
 
 from app.business.domain.models import DefectoTaza, Entrega, LineaLiquidacion
+from app.business.domain.texto import decimal_es
 
 _UN_PESO = Decimal("1")
 
@@ -43,7 +44,7 @@ class ValorPorFactor:
     def aplicar(self, contexto: ContextoLiquidacion) -> LineaLiquidacion:
         valor = contexto.entrega.kilos * contexto.precio_kg
         fr = contexto.entrega.factor_rendimiento
-        return LineaLiquidacion(f"Café pergamino seco, FR {fr}", a_pesos(valor))
+        return LineaLiquidacion(f"Café pergamino seco, FR {decimal_es(fr)}", a_pesos(valor))
 
 
 @dataclass(frozen=True)
@@ -83,4 +84,4 @@ class CuotaSostenimiento:
         if self.porcentaje == 0:
             return None
         valor = Decimal(contexto.subtotal) * self.porcentaje / 100
-        return LineaLiquidacion(f"Cuota de sostenimiento ({self.porcentaje} %)", -a_pesos(valor))
+        return LineaLiquidacion(f"Cuota de sostenimiento ({decimal_es(self.porcentaje)} %)", -a_pesos(valor))
