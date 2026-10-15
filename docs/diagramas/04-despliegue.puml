@@ -1,0 +1,40 @@
+@startuml 04-despliegue
+!include estilo.iuml
+
+node "PC de la bodega\n«device»\nWindows 10/11, 8 GB RAM" as pc {
+  node "Python 3.12\n«executionEnvironment»" as py {
+    node "Uvicorn :8000\n«executionEnvironment»" as uv {
+      artifact "liquicafe\n(app/: presentación,\nnegocio, persistencia)" as app
+    }
+    artifact "respaldo.py" as resp
+  }
+  artifact "liquicafe.db\n«SQLite WAL»" as dbf
+  artifact "parametros.json" as par
+}
+
+node "PC de recibo\n«device»" as recibo {
+  node "Navegador\n«executionEnvironment»" as nav1
+}
+node "Portátil de tesorería\n«device»" as teso {
+  node "Navegador\n«executionEnvironment»" as nav2
+}
+node "Router Wi-Fi\n«device»" as router
+node "Impresora\n«device»" as imp
+node "Memoria USB\n«device»" as usb
+cloud "Internet\n(intermitente)" as net
+
+nav1 -- router : «HTTP» LAN
+nav2 -- router : «HTTP» Wi-Fi
+router -- uv : «HTTP» :8000
+recibo -- imp : USB
+app ..> dbf : lee y escribe
+app ..> par : lee al arrancar
+resp ..> dbf : backup()
+resp ..> usb : copia diaria
+router .. net : opcional:\ncopia en la nube
+
+note right of net
+  El sistema no depende de internet
+  para operar (QA-05).
+end note
+@enduml

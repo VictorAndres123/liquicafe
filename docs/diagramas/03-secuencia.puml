@@ -1,0 +1,79 @@
+@startuml 03-secuencia
+!include estilo.iuml
+autonumber "<b>0."
+
+actor Recibidor as R
+box "Capa de presentación" #fbf6f1
+  boundary "Navegador" as NAV
+  control ":web" as WEB
+end box
+box "Capa de negocio" #f4ece4
+  control ":ServicioEntregas" as SRV
+  control ":Liquidador" as LIQ
+  entity ":TablaFactorRendimiento" as TFR
+  entity "ajuste[i]:Ajuste" as AJ
+end box
+box "Capa de persistencia" #efe4d8
+  participant ":UnidadDeTrabajo" as UOW
+  participant ":Repositorios" as REPO
+  database "liquicafe.db" as DB
+end box
+
+R -> NAV : digita cédula, kg, humedad, FR y taza
+NAV -> WEB : POST /recibo
+activate WEB
+WEB -> WEB : _decimal() convierte "190,3"
+WEB -> SRV : registrar_y_liquidar(cedula, kilos, humedad, fr, defecto)
+activate SRV
+SRV -> UOW : ~__enter~__()
+activate UOW
+UOW -> DB : BEGIN IMMEDIATE
+SRV -> REPO : buscar_por_cedula(numero)
+REPO -> DB : SELECT productores
+REPO --> SRV : fila productor
+SRV -> REPO : precios.obtener(fecha)
+REPO -> DB : SELECT precios
+REPO --> SRV : fila precio
+break no hay precio registrado para hoy
+  SRV -> UOW : ~__exit~__(error)
+  UOW -> DB : ROLLBACK
+  SRV --> WEB : «exception» PrecioNoRegistrado
+  WEB --> NAV : 422, aviso para registrar el precio del día
+end
+SRV -> SRV : mapeo.a_productor(), a_precio()\ncrea Entrega
+SRV -> LIQ : liquidar(entrega, precio)
+activate LIQ
+LIQ -> LIQ : validar_recepcion(entrega)
+
+alt humedad fuera de 10 % a 12 % o FR fuera de 88 a 100
+  LIQ --> SRV : «exception» EntregaRechazada
+  SRV -> UOW : ~__exit~__(error)
+  UOW -> DB : ROLLBACK
+  SRV --> WEB : EntregaRechazada
+  WEB --> NAV : 422, formulario con el mensaje\ny los datos digitados
+else entrega válida
+  LIQ -> TFR : precio_kg(fr, precio)
+  activate TFR
+  TFR --> LIQ : precio por kilo
+  deactivate TFR
+  loop para cada ajuste en orden (valor por FR, taza, bonificación, cuota)
+    LIQ -> AJ : aplicar(contexto con subtotal)
+    AJ --> LIQ : LineaLiquidacion o None
+  end
+  LIQ --> SRV : Liquidacion con copia de parámetros
+  deactivate LIQ
+  SRV -> REPO : liquidaciones.insertar(fila)
+  REPO -> DB : INSERT liquidaciones
+  SRV -> REPO : auditoria.registrar(CREADA)
+  REPO -> DB : INSERT auditoria
+  SRV -> UOW : ~__exit~__()
+  UOW -> DB : COMMIT
+  deactivate UOW
+  SRV --> WEB : Liquidacion(id)
+  deactivate SRV
+  WEB --> NAV : 303 Location: /liquidaciones/{id}
+  deactivate WEB
+  NAV -> WEB : GET /liquidaciones/{id}
+  WEB --> NAV : comprobante con desglose\ny cédula enmascarada
+end
+@enduml

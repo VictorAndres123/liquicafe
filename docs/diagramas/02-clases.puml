@@ -1,0 +1,151 @@
+@startuml 02-clases
+!include estilo.iuml
+skinparam classAttributeIconSize 0
+hide empty members
+
+package "app.presentation" {
+  class "web" <<controlador>> {
+    +recibir_entrega(cedula, kilos, humedad, factor_rendimiento, defecto): Response
+    +comprobante(id_): HTMLResponse
+    +anular(id_, motivo, responsable): Response
+  }
+  class EntregaEntrada <<esquema>> {
+    +cedula: str
+    +kilos: Decimal
+    +humedad: Decimal
+    +factor_rendimiento: Decimal
+    +defecto: DefectoTaza
+  }
+}
+
+package "app.business" {
+  class Servicios <<fachada>>
+  class ServicioEntregas {
+    -liquidador: Liquidador
+    +registrar_y_liquidar(cedula, kilos, humedad, factor_rendimiento, defecto): Liquidacion
+    +anular(id_, motivo, responsable): Liquidacion
+    +marcar_pagada(id_, responsable): Liquidacion
+    +historial(cedula): list<Liquidacion>
+  }
+  class ServicioProductores {
+    +registrar(cedula, nombre, vereda, acepta_tratamiento_datos): Productor
+  }
+  class ServicioPrecios {
+    +registrar(fecha, precio_carga_fr94, precio_pasilla_kg): PrecioDelDia
+  }
+  class ServicioReportes {
+    +diario(fecha): ReporteDiario
+  }
+
+  package "domain" {
+    class Liquidador {
+      +humedad_minima: Decimal
+      +humedad_maxima: Decimal
+      +validar_recepcion(entrega: Entrega)
+      +liquidar(entrega: Entrega, precio: PrecioDelDia): Liquidacion
+      +{static} desde_parametros(parametros): Liquidador
+    }
+    class TablaFactorRendimiento {
+      +fr_minimo: Decimal
+      +fr_maximo: Decimal
+      +kg_excelso_por_carga(fr): Decimal
+      +kg_pasilla_por_carga(fr): Decimal
+      +precio_kg(fr, precio: PrecioDelDia): int
+    }
+    interface Ajuste {
+      +aplicar(contexto: ContextoLiquidacion): LineaLiquidacion [0..1]
+    }
+    class ValorPorFactor
+    class DescuentoPorTaza
+    class BonificacionProgramaEspecial
+    class CuotaSostenimiento
+    class Liquidacion {
+      +precio_kg: int
+      +parametros: Mapping
+      +estado: EstadoLiquidacion
+      +neto(): int
+      +anular(motivo, responsable): Liquidacion
+      +marcar_pagada(): Liquidacion
+    }
+    class LineaLiquidacion {
+      +concepto: str
+      +valor: int
+    }
+    class Entrega {
+      +fecha: date
+      +kilos: Decimal
+      +humedad: Decimal
+      +factor_rendimiento: Decimal
+      +cargas(): Decimal
+      +arrobas(): Decimal
+    }
+    class Productor {
+      +nombre: str
+      +vereda: str
+      +programa_especial: bool
+      +fecha_autorizacion_datos: date
+    }
+    class Cedula <<value object>> {
+      +numero: str
+      +enmascarada(): str
+    }
+    class PrecioDelDia {
+      +fecha: date
+      +precio_carga_fr94: int
+      +precio_pasilla_kg: int
+    }
+    enum EstadoLiquidacion {
+      VIGENTE
+      PAGADA
+      ANULADA
+    }
+  }
+}
+
+package "app.persistence" {
+  class UnidadDeTrabajo {
+    +~__enter~__(): UnidadDeTrabajo
+    +~__exit~__(tipo, error, traza)
+  }
+  class RepositorioLiquidaciones {
+    +insertar(fila: dict): int
+    +obtener(id_): dict [0..1]
+    +actualizar_estado(id_, estado, motivo, responsable)
+  }
+  class RepositorioProductores
+  class RepositorioPrecios
+  class RepositorioAuditoria
+}
+
+web ..> Servicios : <<use>>
+web ..> EntregaEntrada
+
+Servicios *-- "1" ServicioEntregas
+Servicios *-- "1" ServicioProductores
+Servicios *-- "1" ServicioPrecios
+Servicios *-- "1" ServicioReportes
+ServicioEntregas --> "1" Liquidador
+ServicioEntregas ..> UnidadDeTrabajo : <<use>>
+ServicioProductores ..> UnidadDeTrabajo : <<use>>
+
+Liquidador *-- "1" TablaFactorRendimiento
+Liquidador o-- "1..*" Ajuste : ajustes {ordered}
+Ajuste <|.. ValorPorFactor
+Ajuste <|.. DescuentoPorTaza
+Ajuste <|.. BonificacionProgramaEspecial
+Ajuste <|.. CuotaSostenimiento
+Liquidador ..> Liquidacion : <<create>>
+TablaFactorRendimiento ..> PrecioDelDia
+
+Liquidacion *-- "1" Entrega
+Liquidacion *-- "1..*" LineaLiquidacion
+Liquidacion --> "1" EstadoLiquidacion
+Entrega --> "1" Productor
+Productor *-- "1" Cedula
+
+UnidadDeTrabajo *-- "1" RepositorioLiquidaciones
+UnidadDeTrabajo *-- "1" RepositorioProductores
+UnidadDeTrabajo *-- "1" RepositorioPrecios
+UnidadDeTrabajo *-- "1" RepositorioAuditoria
+Cedula -[hidden]down-> UnidadDeTrabajo
+@enduml

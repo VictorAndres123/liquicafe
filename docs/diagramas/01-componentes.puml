@@ -1,0 +1,58 @@
+@startuml 01-componentes
+!include estilo.iuml
+skinparam componentStyle uml2
+skinparam nodesep 40
+skinparam ranksep 45
+
+actor "Recibidor,\ntesorera o gerente" as usuario
+component "Navegador web" as nav
+
+package "Capa de presentación  <<layer>>\napp.presentation" as P {
+  component "Vistas web\n(web.py + Jinja2)" as web
+  component "API REST\n(api.py + Pydantic)" as api
+  component "Traductor de errores\n(errores.py)" as err
+}
+
+package "Capa de negocio  <<layer>>\napp.business" as N {
+  interface "Servicios" as IServ
+  component "Servicios de aplicación\n(services.py)" as srv
+  component "Mapeo registro / objeto\n(mapeo.py)" as map
+  component "Modelo de dominio\n(Liquidador, TablaFactorRendimiento,\nAjustes, Liquidacion)" as dom
+}
+
+package "Capa de persistencia  <<layer>>\napp.persistence" as D {
+  interface "UnidadDeTrabajo" as IUoW
+  component "Unidad de trabajo\n(database.py)" as uow
+  component "Repositorios\n(repositories.py)" as repo
+  component "Lector de parámetros\n(configuracion.py)" as conf
+}
+
+database "liquicafe.db\n(SQLite, modo WAL)" as db
+artifact "parametros.json\n(tabla FNC)" as pjson
+component "Raíz de composición\n(app.main)" as main
+
+usuario -down-> nav
+nav -down-> web : HTTP, formularios
+nav -down-> api : HTTP, JSON
+
+IServ -down- srv
+web .down.> IServ : <<use>>
+api .down.> IServ : <<use>>
+err .down.> dom : traduce ErrorDeNegocio
+
+srv -right-> map
+srv -down-> dom : delega reglas
+IUoW -down- uow
+srv .down.> IUoW : <<use>>
+conf -[hidden]left- uow
+uow *-right- repo
+repo -down-> db : SQL
+conf -down-> pjson : lee
+
+main ..> web : <<create>>
+main ..> srv : <<create>>
+main ..> uow : <<create>>
+web -[hidden]right- main
+map -[hidden]down- uow
+dom -[hidden]down- repo
+@enduml
